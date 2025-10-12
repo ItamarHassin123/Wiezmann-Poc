@@ -33,9 +33,9 @@ transform = transforms.Compose([
 ])
 
 with torch.no_grad():
-    path = r"D:\Wiezmann\Data\Train\Texting- left\img_204.jpg"
+    path = r"C:\Users\itama\OneDrive\Desktop\fasten_seat_belt\image_472.jpg"
     img = Image.open(path).convert("RGB")
-    x = transform(img).unsqueeze(0).to(device)   # [1,3,H,W]  <-- batch dim
+    x = transform(img).unsqueeze(0).to(device)   
     logits = model(x)                            # [1,2]
     pred_idx = logits.argmax(dim=1).item()
     print("prediction:", logits)
