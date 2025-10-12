@@ -4,21 +4,21 @@ import os
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt 
+
 
 #making sure the code runs in the correct place
 device = ('cuda' if torch.cuda.is_available() else 'cpu')
 
 #hyperparamaters
-input_size = 640*480 #photo input size in MNIST data
 num_classes = 2
-num_epochs = 10
-batch_size = 8
-learning_rate = 3e-3
+num_epochs = 1
+batch_size = 10
+learning_rate = 0.001
 
 
 #Importing the Custom data
 transform = transforms.Compose([
+    transforms.Resize((640,480)),
     transforms.ToTensor(),
     transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]),
 ])
@@ -38,26 +38,20 @@ test_dataload   = torch.utils.data.DataLoader(dataset= test_dataset,   batch_siz
 
 #creating the model
 class CNN_classifier(nn.Module):
-    def __init__(self, input_size,  num_classes):
+    def __init__(self,   num_classes):
         super(CNN_classifier, self).__init__()
         self.step = nn.Sequential(
-            nn.Conv2d(3,64,5), #476x636
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2), #238 x 318
+            nn.Conv2d(3,64,5, padding= 2, bias = False), nn.BatchNorm2d(64),nn.ReLU(inplace=True), #one convelution with padding to maintain shape, followed by an activation function and normalization
+            nn.MaxPool2d(2), #320 x 240
 
-            nn.Conv2d(64,128,5), #234x314
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2), #117 x 157
 
-            nn.Conv2d(128,256,5), #113 x 153
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2), #56 x 76
+            nn.Conv2d(64,128,5, padding = 2, bias = False),nn.BatchNorm2d(128), nn.ReLU(inplace=True), #one convelution with padding to maintain shape, followed by an activation function and normalization
+            nn.MaxPool2d(2), #160 x 120
 
-            nn.AdaptiveAvgPool2d(1),  
-            nn.Flatten(),             
-            nn.Dropout(0.3),
-            nn.Linear(256, num_classes)  
 
+            nn.AdaptiveAvgPool2d(1), nn.Flatten(), nn.Dropout(0.3), #changing the shape of the tensor, into [128,1,1] by avareging the values, then flattening into an 'array' and activating dropout
+            nn.Linear(128, 64), nn.ReLU(inplace=True), nn.Dropout(0.2), # hidden layer
+            nn.Linear(64, num_classes)
         )
 
 
@@ -66,8 +60,11 @@ class CNN_classifier(nn.Module):
         x = self.step(x)
         return x
     
-model = CNN_classifier(input_size, num_classes)
+model = CNN_classifier(num_classes)
 model = model.to(device)
+
+
+
 
 #loss and optimizer
 criterion = nn.CrossEntropyLoss()
@@ -77,6 +74,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=
 #training loop
 total_steps =  len(train_dataload)
 for epoch in range(num_epochs):
+    model.train()
     for i , (images, labels) in enumerate(train_dataload):
         images = images.to(device)
         labels = labels.to(device)
@@ -92,12 +90,13 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         if ((i+1 ) % 1 == 0):
-            print(f'epoch {epoch + 1}, step {i + 1}, loss = {loss.item():.4f} ')
+            print(f'epoch {epoch + 1}, step {i + 1}/{total_steps}, loss = {loss.item():.4f} ')
 
 
 
 
-#eval
+#evaluting the model
+model.eval()
 with torch.no_grad():
     n_correct = 0
     n_samples = 0
@@ -114,3 +113,5 @@ with torch.no_grad():
 acc = 100 * n_correct / n_samples
 print (f'accuracy = {acc :.4f}')
 
+#saving the final model
+torch.save(model.state_dict(), r"D:\Wiezmann\POC\POC- Models\FaceModel.pth")
