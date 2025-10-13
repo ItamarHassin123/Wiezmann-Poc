@@ -8,7 +8,8 @@ import torchvision.transforms as transforms
 
 #making sure the code runs in the correct place
 device = ('cuda' if torch.cuda.is_available() else 'cpu')
-print (device)
+
+
 #hyperparamaters
 num_classes = 2
 num_epochs = 1
