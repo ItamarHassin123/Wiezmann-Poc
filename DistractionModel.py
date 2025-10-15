@@ -86,9 +86,9 @@ model = model.to(device)
 
 
 #loss and optimizer
-criterion = nn.CrossEntropyLoss(label_smoothing=0.05)
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
-lr_schedular = torch.optim.lr_scheduler.StepLR(optimizer, step_size= 2, gamma= 0.1)
+criterion = nn.CrossEntropyLoss(label_smoothing=0.05) #loss function
+optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4) #optimizer
+lr_schedular = torch.optim.lr_scheduler.StepLR(optimizer, step_size= 5, gamma= 0.1) #learning rate schedualer
 
 
 
@@ -132,7 +132,7 @@ def train(model, criterion, optimizer, scheduler, num_epochs):
             loss.backward()
             optimizer.step()
 
-            if (i + 1) % 1 == 0:
+            if (i + 1) % 50 == 0:
                 print(f'epoch {epoch + 1}, step {i + 1}/{total_steps}, loss = {loss.item():.4f}')
        
         scheduler.step()
