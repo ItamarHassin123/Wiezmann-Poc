@@ -11,9 +11,9 @@ device = ('cuda' if torch.cuda.is_available() else 'cpu')
 
 #hyperparamaters
 num_classes   = 10
-batch_size    = 32
+batch_size    = 32 
 learning_rate = 0.0001
-num_epochs    = 10
+num_epochs    = 10 
 
 #Importing the Custom data 
 dir = r"D:\Wiezmann\POC\POC- DATA\Distraction Model\Data"
@@ -22,18 +22,20 @@ val_dir = os.path.join(dir, "val")
 
 
 train_tf = transforms.Compose([
-    transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
-    transforms.ColorJitter(0.2, 0.2, 0.2, 0.05),
-    transforms.RandomPerspective(distortion_scale=0.25, p=0.2),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]),
+    transforms.RandomResizedCrop(224, scale=(0.7, 1.0)), #randomly crops the photo to size 224x224, as small as 70% of the image (simulates zoom)
+    transforms.ColorJitter(0.2, 0.2, 0.2, 0.05),#randomly changes image charachtaristics like brightness and contrast, simulates real life changes
+    transforms.RandomPerspective(distortion_scale=0.25, p=0.2), #applys a random warp to simulate different camera angle
+    transforms.ToTensor(), #turns the image into a tensor
+    transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]), #normalizes the image based on imageNet stats
 ])
 val_tf = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(224),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]),
+    transforms.Resize(256), #resizes
+    transforms.CenterCrop(224), #crops to size
+    transforms.ToTensor(),#turns the image into a tensor
+    transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]),#normalizes the image based on imageNet stats
 ])
+
+
 
 train_dataset = torchvision.datasets.ImageFolder(train_dir, transform=train_tf)
 val_dataset   = torchvision.datasets.ImageFolder(val_dir,   transform=val_tf)
@@ -42,19 +44,20 @@ train_dataload = torch.utils.data.DataLoader(train_dataset, batch_size=batch_siz
 val_dataload   = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=True)
 
 #creating the model 
-from torchvision.models import resnet18, ResNet18_Weights
-model = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
-feats = model.fc.in_features
-model.fc = nn.Linear(feats, num_classes)
+from torchvision.models import resnet18, ResNet18_Weights #the model we'll transfer learn
+model = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1) #importing the model
+feats = model.fc.in_features #number of final features
+model.fc = nn.Linear(feats, num_classes) # adding last layer
 model = model.to(device)
 
 #loss and optimizer
-criterion = nn.CrossEntropyLoss(label_smoothing=0.05)
-optimizer= torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
-lr_sched = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = num_epochs)
+criterion = nn.CrossEntropyLoss(label_smoothing=0.05) #label smoothing improves confidence 
+optimizer= torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4) #weight decay improves training by making weights smaller generally
+lr_schedular = torch.optim.lr_scheduler.StepLR(optimizer, step_size= 5, gamma= 0.1) #learning rate schedualer
 
-#AMP (free speed/precision)
-scaler = torch.amp.GradScaler(device)
+
+#AMP 
+scaler = torch.amp.GradScaler(device) #scaler
 
 #evaluate accuracy on val set
 def evaluate_accuracy(model):
@@ -107,6 +110,6 @@ def train(model, criterion, optimizer, scheduler, num_epochs):
     return model
 
 #train and save final
-model = train(model, criterion, optimizer, lr_sched, num_epochs)
+model = train(model, criterion, optimizer, lr_schedular, num_epochs)
 torch.save(model.state_dict(), r"D:\Wiezmann\POC\POC- Models\DistractModel2.pth")
 

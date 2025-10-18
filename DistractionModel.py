@@ -51,27 +51,33 @@ class CNN_Distract(nn.Module):
     def __init__(self, num_classes):
         super(CNN_Distract, self).__init__()
         self.step = nn.Sequential(
+            #first conv layer
             nn.Conv2d(3, 32, 3, padding=1, bias=False), nn.BatchNorm2d(32), nn.ReLU(inplace=True),
             nn.Conv2d(32, 32, 3, padding=1, bias=False), nn.BatchNorm2d(32), nn.ReLU(inplace=True),
             nn.MaxPool2d(2),  #112x112
 
+
+            #Second conv layer
             nn.Conv2d(32, 64, 3, padding=1, bias=False), nn.BatchNorm2d(64), nn.ReLU(inplace=True),
             nn.Conv2d(64, 64, 3, padding=1, bias=False), nn.BatchNorm2d(64), nn.ReLU(inplace=True),
             nn.MaxPool2d(2),  #56x56
 
+            #Third conv layer
             nn.Conv2d(64, 128, 3, padding=1, bias=False), nn.BatchNorm2d(128), nn.ReLU(inplace=True),
             nn.Conv2d(128,128, 3, padding=1, bias=False), nn.BatchNorm2d(128), nn.ReLU(inplace=True),
             nn.MaxPool2d(2),  #28x28
 
+
+            #Fourth conv layer
             nn.Conv2d(128,256, 3, padding=1, bias=False), nn.BatchNorm2d(256), nn.ReLU(inplace=True),
             nn.Conv2d(256,256, 3, padding=1, bias=False), nn.BatchNorm2d(256), nn.ReLU(inplace=True),
             
             
             
-            nn.AdaptiveAvgPool2d(1),  #256x1x1
-            nn.Flatten(),
-            nn.Dropout(0.3),
-            nn.Linear(256, num_classes)
+            nn.AdaptiveAvgPool2d(1),  #turns the outputted tensor into a 256,1,1
+            nn.Flatten(), #turns the tensor into a [256]
+            nn.Dropout(0.2), #remove 20 precent of neurons
+            nn.Linear(256, num_classes) #final linear layer
         )
 
     def forward(self, x):
@@ -86,8 +92,8 @@ model = model.to(device)
 
 
 #loss and optimizer
-criterion = nn.CrossEntropyLoss(label_smoothing=0.05) #loss function
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4) #optimizer
+criterion = nn.CrossEntropyLoss(label_smoothing=0.05) #label smoothing improves confidence 
+optimizer= torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4) #weight decay improves training by making weights smaller generally
 lr_schedular = torch.optim.lr_scheduler.StepLR(optimizer, step_size= 5, gamma= 0.1) #learning rate schedualer
 
 
@@ -115,7 +121,7 @@ def evaluate_accuracy(model):
 def train(model, criterion, optimizer, scheduler, num_epochs):
     total_steps = len(train_dataload)
     best_acc = 0.0
-    best_model = copy.deepcopy(model.state_dict())
+    best_model = copy.deepcopy(model.state_dict()) #saving the best model
 
     for epoch in range(num_epochs):
         model.train()
