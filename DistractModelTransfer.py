@@ -111,5 +111,5 @@ def train(model, criterion, optimizer, scheduler, num_epochs):
 
 #train and save final
 model = train(model, criterion, optimizer, lr_schedular, num_epochs)
-torch.save(model.state_dict(), r"D:\Wiezmann\POC\POC- Models\DistractModel2.pth")
+torch.save(model.state_dict(), r"D:\Wiezmann\POC\POC- Models\DistractModelTransfer.pth")
 

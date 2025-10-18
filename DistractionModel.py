@@ -14,8 +14,7 @@ device = ('cuda' if torch.cuda.is_available() else 'cpu')
 num_classes = 10
 batch_size = 25
 learning_rate = 0.001
-num_epochs = 10
-
+num_epochs = 12
 
 
 #Importing the Custom data 
@@ -162,4 +161,4 @@ model = train(model, criterion, optimizer, lr_schedular, num_epochs)
 
 
 #saving the final model
-torch.save(model.state_dict(), r"D:\Wiezmann\POC\POC- Models\DistractModel2.pth")
+torch.save(model.state_dict(), r"D:\Wiezmann\POC\POC- Models\DistractModel2.0.pth")
