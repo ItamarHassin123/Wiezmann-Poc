@@ -4,7 +4,6 @@ from torchvision import transforms as transforms
 import os
 import torch.nn as nn
 import torchvision.transforms as transforms
-import copy
 
 #moving the model to the Gpu
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -92,8 +91,10 @@ Distract_model_custom.eval()
 
 
 
-#Decector functions
+#To load image paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+#Decector functions
 #Distraction Custom 
 def ClassifyDistractC(img_path):
     with torch.no_grad():
@@ -122,8 +123,8 @@ def ClassifyDistractC(img_path):
         
         
         
-
-print(ClassifyDistractC(r"D:\Wiezmann\Images\test\img_88.jpg")) #יש לשנות את זה לדאטה הרצוי
+path = os.path.join(BASE_DIR, "ImagesForTesting", "img_57.jpg")
+print(ClassifyDistractC(path)) #יש לשנות את זה לדאטה הרצוי
 
 
 #Distraction Transfer 
@@ -138,9 +139,9 @@ def ClassifyDistractT(img_path):
         if (pred == 0):
             return "Drinking"
         elif (pred == 1):
-            return "doing hair and makeup"
+            return "Doing hair and makeup"
         elif (pred == 2):
-            return "using radio"
+            return "Using radio"
         elif (pred == 3):
             return "Reaching behind"
         elif (pred == 4):
@@ -152,8 +153,8 @@ def ClassifyDistractT(img_path):
         else:
             return "Texting" 
         
-
-print(ClassifyDistractT(r"D:\Wiezmann\Images\test\img_88.jpg")) #יש לשנות את זה לדאטה הרצוי
+path = os.path.join(BASE_DIR, "ImagesForTesting", "img_43.jpg")
+print(ClassifyDistractT(path)) #יש לשנות את זה לדאטה הרצוי
 
 
 
@@ -165,4 +166,7 @@ def person_present(img_path,score_thr=0.6):
         keep = (out['scores'] >= score_thr) & (out['labels'] == 1) #how sure is the model that a person is presant
         return bool(keep.sum().item())
 
-print(person_present(r"D:\Wiezmann\POC\POC- DATA\Distraction Model\Data\train\Safe Driving\img_3939.jpg"))#יש לשנות את זה לדאטה הרצוי
+
+path = os.path.join(BASE_DIR, "ImagesForTesting", "img_53.jpg")
+print(person_present(path))#יש לשנות את זה לדאטה הרצוי
+
