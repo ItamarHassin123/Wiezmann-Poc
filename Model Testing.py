@@ -8,7 +8,8 @@ import torchvision.transforms as transforms
 #moving the model to the Gpu
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-
+#To load  paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 #Person Presant model
 #Loading the correct model with pretrained rates and setting it to eval mode
@@ -77,13 +78,13 @@ from torchvision.models import resnet18, ResNet18_Weights
 Distract_Model_Transfer = resnet18() 
 feats = Distract_Model_Transfer.fc.in_features #number of final features
 Distract_Model_Transfer.fc = nn.Linear(feats, 10) # adding last layer
-Distract_Model_Transfer.load_state_dict(torch.load(r"D:\Wiezmann\POC\POC- Models\DistractModelTransfer.pth"))
+Distract_Model_Transfer.load_state_dict(torch.load(os.path.join(BASE_DIR, "DistractModelTransfer.pth")))
 Distract_Model_Transfer.eval()
 
 
 #Custom Model:
 Distract_model_custom = CNN_Distract(10)
-Distract_model_custom.load_state_dict(torch.load(r"D:\Wiezmann\POC\POC- Models\DistractModel1.0.pth"))
+Distract_model_custom.load_state_dict(torch.load(os.path.join(BASE_DIR, "DistractModel1.0.pth")))
 Distract_model_custom.eval()
 
 
@@ -91,8 +92,7 @@ Distract_model_custom.eval()
 
 
 
-#To load image paths
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 #Decector functions
 #Distraction Custom 

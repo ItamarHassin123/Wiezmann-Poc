@@ -32,11 +32,9 @@ val_tf = transforms.Compose([
     transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]),#normalizes the image based on imageNet stats
 ])
 
-dir = r"D:\Wiezmann\POC\POC- DATA\Distraction Model\Data" 
-
-
-train_dir = os.path.join(dir, "train")
-val_dir   = os.path.join(dir, "val")
+dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+train_dir = os.path.join(dir, "POC- DATA", "Distraction Model" ,"train")
+val_dir = os.path.join(dir,"POC- DATA", "Distraction Model" ,"val")  
 
 train_dataset = torchvision.datasets.ImageFolder(train_dir, transform=train_tf)
 val_dataset   = torchvision.datasets.ImageFolder(val_dir,   transform=val_tf)
@@ -159,6 +157,6 @@ def train(model, criterion, optimizer, scheduler, num_epochs):
 model = train(model, criterion, optimizer, lr_schedular, num_epochs)
 
 
-
 #saving the final model
-torch.save(model.state_dict(), r"D:\Wiezmann\POC\POC- Models\DistractModel2.0.pth")
+torch.save(model.state_dict(), os.path.join(os.path.dirname(os.path.abspath(__file__)), "DistractModel2.0.pth"))
+

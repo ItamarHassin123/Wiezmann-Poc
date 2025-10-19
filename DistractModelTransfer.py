@@ -16,9 +16,9 @@ learning_rate = 0.0001
 num_epochs    = 10 
 
 #Importing the Custom data 
-dir = r"D:\Wiezmann\POC\POC- DATA\Distraction Model\Data"
-train_dir = os.path.join(dir, "train")
-val_dir = os.path.join(dir, "val")  
+dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+train_dir = os.path.join(dir, "POC- DATA", "Distraction Model" ,"train")
+val_dir = os.path.join(dir,"POC- DATA", "Distraction Model" ,"val")  
 
 
 train_tf = transforms.Compose([
@@ -49,7 +49,6 @@ model = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1) #importing the model
 feats = model.fc.in_features #number of final features
 model.fc = nn.Linear(feats, num_classes) # adding last layer
 model = model.to(device)
-
 #loss and optimizer
 criterion = nn.CrossEntropyLoss(label_smoothing=0.05) #label smoothing improves confidence 
 optimizer= torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4) #weight decay improves training by making weights smaller generally
@@ -109,7 +108,10 @@ def train(model, criterion, optimizer, scheduler, num_epochs):
     model.load_state_dict(best_state)
     return model
 
-#train and save final
+#train
 model = train(model, criterion, optimizer, lr_schedular, num_epochs)
-torch.save(model.state_dict(), r"D:\Wiezmann\POC\POC- Models\DistractModelTransfer.pth")
+#saving the final model
+torch.save(model.state_dict(), os.path.join(os.path.dirname(os.path.abspath(__file__)), "DistractModelTransfer.pth"))
+
+
 
