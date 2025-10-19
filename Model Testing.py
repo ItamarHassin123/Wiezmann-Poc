@@ -94,19 +94,68 @@ Distract_model_custom.eval()
 
 #Decector functions
 
-#Distraction
-def ClassifyDistract(img_path,score_thr=0.6):
+#Distraction Custom 
+def ClassifyDistractC(img_path):
     with torch.no_grad():
         img = Image.open(img_path)
-        x = val_tf(img).unsqueeze(0).to(device)  #opening the image and transforming it into a tensor
+        x = val_tf(img).unsqueeze(0).to(device)  #opening the image and transforming it 
         Distract_model_custom.to(device).eval()
         logits = Distract_model_custom(x)  #the results        
-        pred = logits.argmax(dim=1)        #the chosen class   
+        pred = int(logits.argmax(dim=1).item() )      #the chosen class   
 
-        return int(pred.item())   
+        if (pred == 0):
+            return "Drinking"
+        elif (pred == 1):
+            return "doing hair and makeup"
+        elif (pred == 2):
+            return "using radio"
+        elif (pred == 3):
+            return "Reaching behind"
+        elif (pred == 4):
+            return "Driving safely"
+        elif (pred == 5 or pred == 6):
+            return "Using phone"
+        elif (pred == 7):
+            return "Talking to passenger"
+        else:
+            return "Texting"
+        
+        
         
 
-print(ClassifyDistract(r"D:\Wiezmann\POC\POC- DATA\Distraction Model\Data\train\Safe Driving\img_4054.jpg"))
+print(ClassifyDistractC(r"D:\Wiezmann\Images\test\img_88.jpg")) #יש לשנות את זה לדאטה הרצוי
+
+
+#Distraction Transfer 
+def ClassifyDistractT(img_path):
+    with torch.no_grad():
+        img = Image.open(img_path)
+        x = val_tf(img).unsqueeze(0).to(device)  #opening the image and transforming it 
+        Distract_Model_Transfer.to(device).eval()
+        logits = Distract_model_custom(x)  #the results        
+        pred = int(logits.argmax(dim=1).item() )      #the chosen class   
+
+        if (pred == 0):
+            return "Drinking"
+        elif (pred == 1):
+            return "doing hair and makeup"
+        elif (pred == 2):
+            return "using radio"
+        elif (pred == 3):
+            return "Reaching behind"
+        elif (pred == 4):
+            return "Driving safely"
+        elif (pred == 5 or pred == 6):
+            return "Using phone"
+        elif (pred == 7):
+            return "Talking to passenger"
+        else:
+            return "Texting" 
+        
+
+print(ClassifyDistractT(r"D:\Wiezmann\Images\test\img_88.jpg")) #יש לשנות את זה לדאטה הרצוי
+
+
 
 #PersonPresant
 def person_present(img_path,score_thr=0.6):
@@ -116,4 +165,4 @@ def person_present(img_path,score_thr=0.6):
         keep = (out['scores'] >= score_thr) & (out['labels'] == 1) #how sure is the model that a person is presant
         return bool(keep.sum().item())
 
-print(person_present(r"D:\Wiezmann\POC\POC- DATA\Distraction Model\Data\train\Safe Driving\img_3939.jpg"))
+print(person_present(r"D:\Wiezmann\POC\POC- DATA\Distraction Model\Data\train\Safe Driving\img_3939.jpg"))#יש לשנות את זה לדאטה הרצוי
