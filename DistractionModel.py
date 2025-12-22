@@ -5,6 +5,29 @@ import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 import copy
+import torchvision.transforms.functional as F
+
+#Image resizer, resizes image without distortion by adding pads
+class ResizePad:
+    def __init__(self, size=224):
+        self.size = size
+
+    def __call__(self, img):
+        w, h = img.size
+        scale = self.size / max(w, h)          
+        new_w, new_h = int(w * scale), int(h * scale)
+        img = F.resize(img, (new_h, new_w))
+
+        pad_w = self.size - new_w
+        pad_h = self.size - new_h
+        left = pad_w // 2
+        right = pad_w - left
+        top = pad_h // 2
+        bottom = pad_h - top
+        img = F.pad(img, [left, top, right, bottom])  
+        return img
+
+
 
 #making sure the code runs in the correct place
 device = ('cuda' if torch.cuda.is_available() else 'cpu')
@@ -17,18 +40,19 @@ learning_rate = 0.001
 num_epochs = 10
 
 
-#Importing the Custom data 
 train_tf = transforms.Compose([
-    transforms.Resize(256), #resizes
+    ResizePad(256), #resizes
     transforms.ColorJitter(0.2, 0.2, 0.2, 0.05),#randomly changes image charachtaristics like brightness and contrast, simulates real life changes
     transforms.ToTensor(), #turns the image into a tensor
     transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]), #normalizes the image based on imageNet stats
 ])
 val_tf = transforms.Compose([
-    transforms.Resize(256), #resizes
+    ResizePad(256), #resizes
     transforms.ToTensor(),#turns the image into a tensor
     transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]),#normalizes the image based on imageNet stats
 ])
+
+
 
 dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 train_dir = os.path.join(dir, "POC- DATA", "Distraction Model" ,"train")

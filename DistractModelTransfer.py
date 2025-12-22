@@ -5,6 +5,31 @@ import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 import copy
+import torchvision.transforms.functional as F
+
+
+#Image resizer, resizes image without distortion by adding pads
+class ResizePad:
+    def __init__(self, size=224):
+        self.size = size
+
+    def __call__(self, img):
+        w, h = img.size
+        scale = self.size / max(w, h)          
+        new_w, new_h = int(w * scale), int(h * scale)
+        img = F.resize(img, (new_h, new_w))
+
+        pad_w = self.size - new_w
+        pad_h = self.size - new_h
+        left = pad_w // 2
+        right = pad_w - left
+        top = pad_h // 2
+        bottom = pad_h - top
+        img = F.pad(img, [left, top, right, bottom])  #
+        return img
+
+
+
 
 #making sure the code runs in the correct place
 device = ('cuda' if torch.cuda.is_available() else 'cpu')
@@ -22,14 +47,13 @@ val_dir = os.path.join(dir,"POC- DATA", "Distraction Model" ,"val")
 
 
 train_tf = transforms.Compose([
-    transforms.Resize(256), #resizes
+    ResizePad(224), #resizes
     transforms.ColorJitter(0.2, 0.2, 0.2, 0.05),#randomly changes image charachtaristics like brightness and contrast, simulates real life changes
     transforms.ToTensor(), #turns the image into a tensor
     transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]), #normalizes the image based on imageNet stats
 ])
 val_tf = transforms.Compose([
-    transforms.Resize(256), #resizes
-    transforms.CenterCrop(224), #crops to size
+    ResizePad(224), #resizes
     transforms.ToTensor(),#turns the image into a tensor
     transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]),#normalizes the image based on imageNet stats
 ])
@@ -46,11 +70,19 @@ val_dataload   = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size,
 from torchvision.models import resnet18, ResNet18_Weights #the model we'll transfer learn
 model = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1) #importing the model
 feats = model.fc.in_features #number of final features
+for params in model.parameters():
+    params.requires_grad = False
+for params in model.layer4.parameters():
+    params.requires_grad = True
 model.fc = nn.Linear(feats, num_classes) # adding last layer
 model = model.to(device)
 #loss and optimizer
 criterion = nn.CrossEntropyLoss(label_smoothing=0.05) #label smoothing improves confidence 
-optimizer= torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4) #weight decay improves training by making weights smaller generally
+optimizer = torch.optim.AdamW(
+    list(model.layer4.parameters()) + list(model.fc.parameters()),
+    lr=1e-4,               # smaller LR for fine-tuning
+    weight_decay=1e-4
+)
 lr_schedular = torch.optim.lr_scheduler.StepLR(optimizer, step_size= 5, gamma= 0.1) #learning rate schedualer
 
 
