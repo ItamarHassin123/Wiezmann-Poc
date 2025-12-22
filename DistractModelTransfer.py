@@ -10,7 +10,7 @@ import copy
 device = ('cuda' if torch.cuda.is_available() else 'cpu')
 
 #hyperparamaters
-num_classes   = 10
+num_classes   = 1
 batch_size    = 32 
 learning_rate = 0.0001
 num_epochs    = 10 
@@ -93,7 +93,7 @@ def train(model, criterion, optimizer, scheduler, num_epochs):
             scaler.step(optimizer)
             scaler.update()
 
-            if (i + 1) % 50 == 0:
+            if (i + 1) % 1 == 0:
                 print(f'epoch {epoch + 1}, step {i + 1}/{total_steps}, loss = {loss.item():.4f}')
 
         scheduler.step()
