@@ -11,10 +11,10 @@ device = ('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 #hyperparamaters
-num_classes = 1
+num_classes = 10
 batch_size = 25
 learning_rate = 0.001
-num_epochs = 12
+num_epochs = 10
 
 
 #Importing the Custom data 

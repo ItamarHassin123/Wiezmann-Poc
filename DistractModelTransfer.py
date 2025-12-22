@@ -10,7 +10,7 @@ import copy
 device = ('cuda' if torch.cuda.is_available() else 'cpu')
 
 #hyperparamaters
-num_classes   = 1
+num_classes   = 10
 batch_size    = 32 
 learning_rate = 0.0001
 num_epochs    = 10 
@@ -22,9 +22,8 @@ val_dir = os.path.join(dir,"POC- DATA", "Distraction Model" ,"val")
 
 
 train_tf = transforms.Compose([
-    transforms.RandomResizedCrop(224, scale=(0.7, 1.0)), #randomly crops the photo to size 224x224, as small as 70% of the image (simulates zoom)
+    transforms.Resize(256), #resizes
     transforms.ColorJitter(0.2, 0.2, 0.2, 0.05),#randomly changes image charachtaristics like brightness and contrast, simulates real life changes
-    transforms.RandomPerspective(distortion_scale=0.25, p=0.2), #applys a random warp to simulate different camera angle
     transforms.ToTensor(), #turns the image into a tensor
     transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]), #normalizes the image based on imageNet stats
 ])
