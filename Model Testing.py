@@ -123,7 +123,7 @@ def ClassifyDistractC(img_path):
         
         
         
-path = os.path.join(BASE_DIR, "ImagesForTesting", "img_57.jpg")
+path = os.path.join(BASE_DIR, "ImagesForTesting", "4.jpg")
 print(ClassifyDistractC(path)) #יש לשנות את זה לדאטה הרצוי
 
 
@@ -153,7 +153,7 @@ def ClassifyDistractT(img_path):
         else:
             return "Texting" 
         
-path = os.path.join(BASE_DIR, "ImagesForTesting", "img_43.jpg")
+path = os.path.join(BASE_DIR, "ImagesForTesting", "4.jpg")
 print(ClassifyDistractT(path)) #יש לשנות את זה לדאטה הרצוי
 
 
@@ -167,6 +167,6 @@ def person_present(img_path,score_thr=0.6):
         return bool(keep.sum().item())
 
 
-path = os.path.join(BASE_DIR, "ImagesForTesting", "img_53.jpg")
+path = os.path.join(BASE_DIR, "ImagesForTesting", "4.jpg")
 print(person_present(path))#יש לשנות את זה לדאטה הרצוי
 
