@@ -11,7 +11,7 @@ device = ('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 #hyperparamaters
-num_classes = 10
+num_classes = 1
 batch_size = 25
 learning_rate = 0.001
 num_epochs = 12
@@ -19,15 +19,13 @@ num_epochs = 12
 
 #Importing the Custom data 
 train_tf = transforms.Compose([
-    transforms.RandomResizedCrop(224, scale=(0.7, 1.0)), #randomly crops the photo to size 224x224, as small as 70% of the image (simulates zoom)
+    transforms.Resize(256), #resizes
     transforms.ColorJitter(0.2, 0.2, 0.2, 0.05),#randomly changes image charachtaristics like brightness and contrast, simulates real life changes
-    transforms.RandomPerspective(distortion_scale=0.25, p=0.2), #applys a random warp to simulate different camera angle
     transforms.ToTensor(), #turns the image into a tensor
     transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]), #normalizes the image based on imageNet stats
 ])
 val_tf = transforms.Compose([
     transforms.Resize(256), #resizes
-    transforms.CenterCrop(224), #crops to size
     transforms.ToTensor(),#turns the image into a tensor
     transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]),#normalizes the image based on imageNet stats
 ])
@@ -64,17 +62,12 @@ class CNN_Distract(nn.Module):
             nn.Conv2d(128,128, 3, padding=1, bias=False), nn.BatchNorm2d(128), nn.ReLU(inplace=True),
             nn.MaxPool2d(2),  #28x28
 
-
-            #Fourth conv layer
-            nn.Conv2d(128,256, 3, padding=1, bias=False), nn.BatchNorm2d(256), nn.ReLU(inplace=True),
-            nn.Conv2d(256,256, 3, padding=1, bias=False), nn.BatchNorm2d(256), nn.ReLU(inplace=True),
             
             
-            
-            nn.AdaptiveAvgPool2d(1),  #turns the outputted tensor into a 256,1,1
-            nn.Flatten(), #turns the tensor into a [256]
+            nn.AdaptiveAvgPool2d(1),  #turns the outputted tensor into a 128,1,1
+            nn.Flatten(), #turns the tensor into a [128]
             nn.Dropout(0.2), #remove 20 precent of neurons
-            nn.Linear(256, num_classes) #final linear layer
+            nn.Linear(128, num_classes) #final linear layer
         )
 
     def forward(self, x):
@@ -135,7 +128,7 @@ def train(model, criterion, optimizer, scheduler, num_epochs):
             loss.backward()
             optimizer.step()
 
-            if (i + 1) % 50 == 0:
+            if (i + 1) % 1 == 0:
                 print(f'epoch {epoch + 1}, step {i + 1}/{total_steps}, loss = {loss.item():.4f}')
        
         scheduler.step()
