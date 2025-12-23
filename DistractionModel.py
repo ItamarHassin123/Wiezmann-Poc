@@ -1,15 +1,17 @@
 #imports
-import torch
 import os
-import torch.nn as nn
-import torchvision
-import torchvision.transforms as transforms
 import copy
+
+import torch
+import torchvision
+import torch.nn as nn
+
+import torchvision.transforms as transforms
 import torchvision.transforms.functional as F
 
 #Image resizer, resizes image without distortion by adding pads
 class ResizePad:
-    def __init__(self, size=224):
+    def __init__(self, size=256):
         self.size = size
 
     def __call__(self, img):
@@ -27,42 +29,6 @@ class ResizePad:
         img = F.pad(img, [left, top, right, bottom])  
         return img
 
-
-
-#making sure the code runs in the correct place
-device = ('cuda' if torch.cuda.is_available() else 'cpu')
-
-
-#hyperparamaters
-num_classes = 10
-batch_size = 25
-learning_rate = 3e-4
-num_epochs = 10
-
-
-train_tf = transforms.Compose([
-    ResizePad(256), #resizes
-    transforms.ColorJitter(0.2, 0.2, 0.2, 0.05),#randomly changes image charachtaristics like brightness and contrast, simulates real life changes
-    transforms.ToTensor(), #turns the image into a tensor
-    transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]), #normalizes the image based on imageNet stats
-])
-val_tf = transforms.Compose([
-    ResizePad(256), #resizes
-    transforms.ToTensor(),#turns the image into a tensor
-    transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]),#normalizes the image based on imageNet stats
-])
-
-
-
-dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-train_dir = os.path.join(dir, "POC- DATA", "Distraction Model" ,"train")
-val_dir = os.path.join(dir,"POC- DATA", "Distraction Model" ,"val")  
-
-train_dataset = torchvision.datasets.ImageFolder(train_dir, transform=train_tf)
-val_dataset   = torchvision.datasets.ImageFolder(val_dir,   transform=val_tf)
-
-train_dataload = torch.utils.data.DataLoader(dataset= train_dataset, batch_size=batch_size, shuffle=True)
-val_dataload   = torch.utils.data.DataLoader(dataset= val_dataset,   batch_size=batch_size , shuffle=False)
 
 
 #creating the model
@@ -99,6 +65,43 @@ class CNN_Distract(nn.Module):
         return x
     
 
+
+#making sure the code runs in the correct place
+device = ('cuda' if torch.cuda.is_available() else 'cpu')
+
+
+#hyperparamaters
+num_classes = 10
+batch_size = 25
+learning_rate = 5e-4
+num_epochs = 12
+
+
+train_tf = transforms.Compose([
+    ResizePad(256), #resizes
+    transforms.ColorJitter(0.2, 0.2, 0.2, 0.05),#randomly changes image charachtaristics like brightness and contrast, simulates real life changes
+    transforms.ToTensor(), #turns the image into a tensor
+    transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]), #normalizes the image based on imageNet stats
+])
+val_tf = transforms.Compose([
+    ResizePad(256), #resizes
+    transforms.ToTensor(),#turns the image into a tensor
+    transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225]),#normalizes the image based on imageNet stats
+])
+
+
+#loading data
+dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+train_dir = os.path.join(dir, "POC- DATA", "Distraction Model" ,"train")
+val_dir = os.path.join(dir,"POC- DATA", "Distraction Model" ,"val")  
+
+train_dataset = torchvision.datasets.ImageFolder(train_dir, transform=train_tf)
+val_dataset   = torchvision.datasets.ImageFolder(val_dir,   transform=val_tf)
+
+train_dataload = torch.utils.data.DataLoader(dataset= train_dataset, batch_size=batch_size, shuffle=True)
+val_dataload   = torch.utils.data.DataLoader(dataset= val_dataset,   batch_size=batch_size , shuffle=False)
+
+
 model = CNN_Distract(num_classes)
 model = model.to(device)
 
@@ -108,7 +111,9 @@ model = model.to(device)
 #loss and optimizer
 criterion = nn.CrossEntropyLoss(label_smoothing=0.05) #label smoothing improves confidence 
 optimizer= torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4) #weight decay improves training by making weights smaller generally
-#lr_schedular = torch.optim.lr_scheduler.StepLR(optimizer, step_size= 5, gamma= 0.1) #learning rate schedualer
+lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size= 5, gamma= 0.1) #learning rate scheduler
+
+
 
 
 
@@ -132,7 +137,7 @@ def evaluate_accuracy(model):
 
 
 #training loop 
-def train(model, criterion, optimizer, num_epochs):
+def train(model, criterion, optimizer, num_epochs, scheduler):
     total_steps = len(train_dataload)
     best_acc = 0.0
     best_model = copy.deepcopy(model.state_dict()) #saving the best model
@@ -151,11 +156,12 @@ def train(model, criterion, optimizer, num_epochs):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            
 
-            if (i + 1) % 1 == 0:
+            if (i + 1) % 30 == 0:
                 print(f'epoch {epoch + 1}, step {i + 1}/{total_steps}, loss = {loss.item():.4f}')
        
-
+        scheduler.step()
         acc = evaluate_accuracy(model)
         print(f'Epoch {epoch + 1}: test accuracy = {acc:.6f}%')
 
@@ -169,10 +175,8 @@ def train(model, criterion, optimizer, num_epochs):
     return model
 
 
-
-model = train(model, criterion, optimizer, num_epochs)
-
-
-#saving the final model
-torch.save(model.state_dict(), os.path.join(os.path.dirname(os.path.abspath(__file__)), "DistractModel2.0.pth"))
+if __name__ == "__main__":
+    model = train(model, criterion, optimizer, num_epochs, lr_scheduler)
+    #saving the final model
+    torch.save(model.state_dict(), os.path.join(os.path.dirname(os.path.abspath(__file__)), "DistractModel2.0.pth"))
 
