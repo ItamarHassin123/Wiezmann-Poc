@@ -36,7 +36,7 @@ device = ('cuda' if torch.cuda.is_available() else 'cpu')
 #hyperparamaters
 num_classes = 10
 batch_size = 25
-learning_rate = 0.001
+learning_rate = 3e-4
 num_epochs = 10
 
 
@@ -108,7 +108,7 @@ model = model.to(device)
 #loss and optimizer
 criterion = nn.CrossEntropyLoss(label_smoothing=0.05) #label smoothing improves confidence 
 optimizer= torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4) #weight decay improves training by making weights smaller generally
-lr_schedular = torch.optim.lr_scheduler.StepLR(optimizer, step_size= 5, gamma= 0.1) #learning rate schedualer
+#lr_schedular = torch.optim.lr_scheduler.StepLR(optimizer, step_size= 5, gamma= 0.1) #learning rate schedualer
 
 
 
@@ -132,7 +132,7 @@ def evaluate_accuracy(model):
 
 
 #training loop 
-def train(model, criterion, optimizer, scheduler, num_epochs):
+def train(model, criterion, optimizer, num_epochs):
     total_steps = len(train_dataload)
     best_acc = 0.0
     best_model = copy.deepcopy(model.state_dict()) #saving the best model
@@ -155,7 +155,6 @@ def train(model, criterion, optimizer, scheduler, num_epochs):
             if (i + 1) % 1 == 0:
                 print(f'epoch {epoch + 1}, step {i + 1}/{total_steps}, loss = {loss.item():.4f}')
        
-        scheduler.step()
 
         acc = evaluate_accuracy(model)
         print(f'Epoch {epoch + 1}: test accuracy = {acc:.6f}%')
@@ -171,7 +170,7 @@ def train(model, criterion, optimizer, scheduler, num_epochs):
 
 
 
-model = train(model, criterion, optimizer, lr_schedular, num_epochs)
+model = train(model, criterion, optimizer, num_epochs)
 
 
 #saving the final model
