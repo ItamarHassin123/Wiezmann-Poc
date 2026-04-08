@@ -1,0 +1,7 @@
+Best validation accuracy: 98.3000%
+Epochs: 12
+Batch size: 25
+Learning rate: 0.0005
+Loss: CrossEntropyLoss(label_smoothing=0.05)
+Optimizer: AdamW(weight_decay=1e-4)
+Scheduler: StepLR(step_size=5, gamma=0.1)
